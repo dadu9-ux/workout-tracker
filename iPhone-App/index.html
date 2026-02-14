@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Workout">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#FF4500">
+    <title>Kettlebell Power - Workout Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #FF4500;
+            --primary-dark: #CC3700;
+            --secondary: #1a1a1a;
+            --accent: #FFD700;
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --surface-light: #2a2a2a;
+            --text: #ffffff;
+            --text-dim: #999;
+            --success: #00ff88;
+            --recovery: #FFA500;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 69, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+            overflow-x: hidden;
+            /* iOS PWA support */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        header {
+            text-align: center;
+            padding: 25px 15px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .quote-banner {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .quote-text {
+            font-style: italic;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .quote-author {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            text-align: right;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: clamp(2rem, 8vw, 3rem);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            position: relative;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .goal {
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            font-weight: 600;
+            opacity: 0.95;
+            line-height: 1.4;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--surface-light);
+            flex-wrap: wrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            font-family: 'Work Sans', sans-serif;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .week-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .week-btn {
+            padding: 12px 8px;
+            background: var(--surface);
+            border: 2px solid var(--surface-light);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .week-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .week-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .workout-day {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 15px;
+            border-left: 5px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .workout-day.recovery {
+            border-left-color: var(--recovery);
+        }
+
+        .workout-day.rest {
+            border-left-color: var(--text-dim);
+            opacity: 0.7;
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .day-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .day-name {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.5rem;
+            letter-spacing: 1.5px;
+        }
+
+        .day-type {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .day-type.intensive {
+            background: var(--primary);
+            color: white;
+        }
+
+        .day-type.recovery {
+            background: var(--recovery);
+            color: white;
+        }
+
+        .day-type.rest {
+            background: var(--text-dim);
+            color: white;
+        }
+
+        .completion-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .completion-checkbox input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--success);
+        }
+
+        .workout-name {
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .exercise-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .exercise {
+            padding: 14px;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 1px solid var(--surface-light);
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            font-size: 1rem;
+            flex: 1;
+        }
+
+        .exercise-details {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .set-tracking {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--surface-light);
+        }
+
+        .set-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: var(--surface);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .set-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--success);
+        }
+
+        .set-checkbox.completed {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid var(--success);
+        }
+
+        .exercise-input {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .exercise-input input {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px;
+            background: var(--surface-light);
+            border: 1px solid var(--surface-light);
+            border-radius: 6px;
+            color: var(--text);
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .exercise-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .exercise-input label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .alternate-btn {
+            padding: 8px 14px;
+            background: var(--surface-light);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .alternate-btn:active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .circuit-info {
+            background: var(--primary-dark);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .notes-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--surface-light);
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--surface-light);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+
+        .notes-section textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .notes-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .warmup-section, .cooldown-section {
+            background: var(--surface-light);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progression-table {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 8px;
+            background: var(--bg);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--surface-light);
+        }
+
+        .weight-input {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg);
+            border: 1px solid var(--surface-light);
+            border-radius: 6px;
+            color: var(--text);
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .measurements-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .measurement-card {
+            background: var(--surface);
+            padding: 16px;
+            border-radius: 10px;
+        }
+
+        .measurement-card h3 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .measurement-input {
+            margin-bottom: 12px;
+        }
+
+        .measurement-input label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .measurement-input input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--surface-light);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .measurement-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--surface-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.5s ease;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 15px;
+        }
+
+        .save-btn:active {
+            background: var(--primary-dark);
+            transform: scale(0.98);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--surface-light);
+            border: none;
+            border-radius: 50%;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alternate-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .alternate-item {
+            padding: 14px;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 2px solid var(--surface-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .alternate-item:active {
+            border-color: var(--primary);
+            background: var(--surface-light);
+        }
+
+        .alternate-item-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .alternate-item-details {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Kettlebell Power</h1>
+        <div class="goal">105 kilograms → 90 kilograms<br>6 Days/Week Transformation</div>
+        <div class="quote-banner" id="quoteBanner">
+            <div class="quote-text" id="quoteText"></div>
+            <div class="quote-author" id="quoteAuthor"></div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-card">
+                <div class="stat-label">Current Week</div>
+                <div class="stat-value" id="currentWeekStat">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Workouts Completed</div>
+                <div class="stat-value" id="completedStat">0/48</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Current Weight</div>
+                <div class="stat-value" id="weightStat">105 kg</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Progress to Goal</div>
+                <div class="stat-value" id="progressStat">0%</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="schedule">Weekly Schedule</button>
+            <button class="tab" data-tab="progression">Weight Progression</button>
+            <button class="tab" data-tab="measurements">Body Measurements</button>
+        </div>
+
+        <div id="schedule" class="tab-content active">
+            <div class="week-selector" id="weekSelector"></div>
+            <div id="workoutSchedule"></div>
+        </div>
+
+        <div id="progression" class="tab-content">
+            <div class="progression-table">
+                <h2 style="font-family: 'Bebas Neue', cursive; font-size: 2rem; margin-bottom: 20px; letter-spacing: 2px;">Exercise Progression Tracker</h2>
+                <table id="progressionTable">
+                    <thead>
+                        <tr>
+                            <th>Exercise</th>
+                            <th>Week 1-4 Target</th>
+                            <th>Week 5-8 Target</th>
+                            <th>Current Weight</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="measurements" class="tab-content">
+            <div class="measurements-grid">
+                <div class="measurement-card">
+                    <h3>Body Weight Tracking</h3>
+                    <div class="measurement-input">
+                        <label>Starting Weight (kg)</label>
+                        <input type="number" id="startWeight" value="105" step="0.1">
+                    </div>
+                    <div class="measurement-input">
+                        <label>Current Weight (kg)</label>
+                        <input type="number" id="currentWeight" value="105" step="0.1">
+                    </div>
+                    <div class="measurement-input">
+                        <label>Goal Weight (kg)</label>
+                        <input type="number" id="goalWeight" value="90" step="0.1">
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <strong>Weight Lost: <span id="weightLost">0</span> kg</strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="weightProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <button class="save-btn" onclick="saveMeasurements()">Save</button>
+                </div>
+
+                <div class="measurement-card">
+                    <h3>Body Measurements</h3>
+                    <div class="measurement-input">
+                        <label>Waist (cm)</label>
+                        <input type="number" id="waist" step="0.1">
+                    </div>
+                    <div class="measurement-input">
+                        <label>Chest (cm)</label>
+                        <input type="number" id="chest" step="0.1">
+                    </div>
+                    <div class="measurement-input">
+                        <label>Arms (cm)</label>
+                        <input type="number" id="arms" step="0.1">
+                    </div>
+                    <div class="measurement-input">
+                        <label>Thighs (cm)</label>
+                        <input type="number" id="thighs" step="0.1">
+                    </div>
+                    <button class="save-btn" onclick="saveMeasurements()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Strategic Wisdom Quotes from Ancient Military Texts
+        const strategyQuotes = [
+            {
+                text: "Victorious warriors win first and then go to war, while defeated warriors go to war first and then seek to win.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "The supreme art of war is to subdue the enemy without fighting.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "In the midst of chaos, there is also opportunity.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "Appear weak when you are strong, and strong when you are weak.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "If you know the enemy and know yourself, you need not fear the result of a hundred battles.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "Opportunities multiply as they are seized.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "He who is prudent and lies in wait for an enemy who is not, will be victorious.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "The wise warrior avoids the battle.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "To know your enemy, you must become your enemy.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "Let your plans be dark and impenetrable as night, and when you move, fall like a thunderbolt.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "The general who wins the battle makes many calculations in his temple before the battle is fought.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "Strategy without tactics is the slowest route to victory. Tactics without strategy is the noise before defeat.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "When the enemy is at ease, be able to weary him; when well fed, to starve him; when at rest, to make him move.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "A military force has no constant formation, water has no constant shape. The ability to gain victory by changing and adapting according to the opponent is called genius.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "Do not repeat the tactics which have gained you one victory, but let your methods be regulated by the infinite variety of circumstances.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "The Way means inducing the people to have the same aim as the leadership, so that they will share death and share life, without fear of danger.",
+                author: "Jiang Taigong, Six Secret Teachings"
+            },
+            {
+                text: "The army that is first to occupy the field of battle has the advantage. One who arrives first at a battleground awaits the enemy at his ease.",
+                author: "Jiang Taigong, Six Secret Teachings"
+            },
+            {
+                text: "Those who excel in warfare first make themselves invincible and then wait for the enemy to become vulnerable.",
+                author: "Jiang Taigong, Six Secret Teachings"
+            },
+            {
+                text: "When someone is confused about himself, he will be negligent toward others. When he is doubtful about the situation, he will be afraid of the enemy.",
+                author: "Jiang Taigong, Six Secret Teachings"
+            },
+            {
+                text: "With wisdom generate order; with order go forth to chaos. With fullness go forth to vacuity.",
+                author: "Jiang Taigong, Six Secret Teachings"
+            },
+            {
+                text: "One who knows when he can fight, and when he cannot fight, will be victorious.",
+                author: "Jiang Taigong, Six Secret Teachings"
+            },
+            {
+                text: "In difficult ground, press on; in encircled ground, use strategy; in death ground, fight.",
+                author: "Wu Qi, Wu Tzu"
+            },
+            {
+                text: "The difficulty in war is not attack but control. The difficulty is not in courage but in discipline.",
+                author: "Wu Qi, Wu Tzu"
+            },
+            {
+                text: "Good warriors of ancient times cultivated themselves to await the enemy. They did not presume the enemy would not come but relied on themselves.",
+                author: "Wei Liaozi"
+            },
+            {
+                text: "One who excels at employing the military does not conscript the people twice or transport provisions three times.",
+                author: "Wei Liaozi"
+            },
+            {
+                text: "The way of warfare is like flowing water. Water's nature avoids heights and races downward.",
+                author: "Sima Rangju, Methods of the Sima"
+            },
+            {
+                text: "When orders are consistently trustworthy and always carried out, the relationship between superior and subordinate is satisfactory.",
+                author: "Sima Rangju, Methods of the Sima"
+            },
+            {
+                text: "A wise general will feed his men from the enemy, for one cartload of the enemy's provisions is worth twenty of our own.",
+                author: "Ancient Military Wisdom"
+            },
+            {
+                text: "Victory is reserved for those who are willing to pay the price in preparation, discipline, and sacrifice.",
+                author: "Ancient General's Maxim"
+            },
+            {
+                text: "The skilled general conducts the army as if commanding a single man. The troops follow without deviation.",
+                author: "Classical Military Strategy"
+            },
+            {
+                text: "Do not engage an enemy more powerful than you. And if it is unavoidable and you do have to engage, then make sure you engage it on your terms, not on your enemy's terms.",
+                author: "Ancient Tactical Principle"
+            },
+            {
+                text: "The leader who advances without seeking fame, who retreats without avoiding blame, he whose only purpose is to protect his people and serve his lord, is a treasure of the state.",
+                author: "Classical Leadership Text"
+            },
+            {
+                text: "Discipline in war counts more than fury. Control is superior to force.",
+                author: "Military Principle"
+            },
+            {
+                text: "He who fears being conquered is sure of defeat. Confidence is the foundation of victory.",
+                author: "Warrior's Wisdom"
+            },
+            {
+                text: "It is essential to seek out enemy agents who have come to conduct espionage against you and bribe them to serve you. Give them instructions and care for them. Thus double agents are recruited and used.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "In battle, use the direct method to engage the enemy and the indirect to win.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "The greatest victory is that which requires no battle. Supreme excellence lies not in winning every battle but in defeating the enemy without ever fighting.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "When you surround an army, leave an outlet free. Do not press a desperate foe too hard.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "Move not unless you see an advantage; use not your troops unless there is something to be gained; fight not unless the position is critical.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "A kingdom that has once been destroyed can never come again into being; nor can the dead ever be brought back to life. Hence the enlightened ruler is heedful, and the good general full of caution.",
+                author: "Sun Tzu, The Art of War"
+            },
+            {
+                text: "The general who does not advance to seek glory, nor retreat to avoid punishment, but cares for only the people's security and promotes the people's interests, is the nation's treasure.",
+                author: "Sun Tzu, The Art of War"
+            }
+        ];
+
+        // Exercise Database with Alternates
+        const exerciseDatabase = {
+            'Double Kettlebell Front Squat': {
+                alternates: [
+                    { name: 'Goblet Squat', details: 'Single kettlebell, easier variation' },
+                    { name: 'Barbell Front Squat', details: 'If barbells available' },
+                    { name: 'Box Squat', details: 'Depth control, knee-friendly' },
+                    { name: 'Bulgarian Split Squat', details: 'Unilateral leg strength' }
+                ]
+            },
+            'Push-ups': {
+                alternates: [
+                    { name: 'Dumbbell Bench Press', details: 'Similar pushing pattern' },
+                    { name: 'Dips', details: 'Bodyweight pushing' },
+                    { name: 'Pike Push-ups', details: 'Shoulder emphasis' },
+                    { name: 'Incline Push-ups', details: 'Easier variation' }
+                ]
+            },
+            'Single-arm Kettlebell Swings': {
+                alternates: [
+                    { name: 'Two-hand Kettlebell Swings', details: 'Easier variation' },
+                    { name: 'Dumbbell Swings', details: 'If kettlebells unavailable' },
+                    { name: 'Jump Squats', details: 'Similar power development' },
+                    { name: 'Box Jumps', details: 'Explosive lower body' }
+                ]
+            },
+            'Ring Rows / Inverted Rows': {
+                alternates: [
+                    { name: 'Barbell Rows', details: 'Similar pulling pattern' },
+                    { name: 'Dumbbell Rows', details: 'Unilateral option' },
+                    { name: 'TRX Rows', details: 'Similar to rings' },
+                    { name: 'Cable Rows', details: 'Machine option' }
+                ]
+            },
+            'Kettlebell Farmer Carry': {
+                alternates: [
+                    { name: 'Dumbbell Farmer Carry', details: 'Same movement' },
+                    { name: 'Trap Bar Carry', details: 'Heavier loads' },
+                    { name: 'Suitcase Carry', details: 'Unilateral core work' },
+                    { name: 'Overhead Carry', details: 'Shoulder stability' }
+                ]
+            },
+            'Plank with Tap Outs': {
+                alternates: [
+                    { name: 'Standard Plank', details: 'Simpler isometric hold' },
+                    { name: 'Plank to Push-up', details: 'Dynamic core work' },
+                    { name: 'Mountain Climbers', details: 'More cardio focus' },
+                    { name: 'Dead Bug', details: 'Supine core work' }
+                ]
+            },
+            'Single-leg Romanian Deadlift': {
+                alternates: [
+                    { name: 'Romanian Deadlift (two legs)', details: 'Bilateral version' },
+                    { name: 'Good Mornings', details: 'Similar hip hinge' },
+                    { name: 'Glute Ham Raise', details: 'Posterior chain focus' },
+                    { name: 'Nordic Curls', details: 'Hamstring emphasis' }
+                ]
+            },
+            'Turkish Get-ups': {
+                alternates: [
+                    { name: 'Windmills', details: 'Similar overhead stability' },
+                    { name: 'Half Turkish Get-up', details: 'Easier progression' },
+                    { name: 'Overhead Squat', details: 'Overhead stability work' },
+                    { name: 'Bottoms-up Press', details: 'Kettlebell stability' }
+                ]
+            },
+            'Dead Bugs': {
+                alternates: [
+                    { name: 'Hollow Body Hold', details: 'Isometric core' },
+                    { name: 'Bird Dog', details: 'Similar anti-rotation' },
+                    { name: 'Pallof Press', details: 'Anti-rotation with resistance' },
+                    { name: 'Ab Wheel Rollout', details: 'Advanced core' }
+                ]
+            },
+            'Goblet Squats': {
+                alternates: [
+                    { name: 'Front Squat', details: 'Similar position, more load' },
+                    { name: 'Zercher Squat', details: 'Core-intensive variation' },
+                    { name: 'Jump Squats', details: 'Power development' },
+                    { name: 'Pause Squats', details: 'Strength at bottom' }
+                ]
+            },
+            'Alternate Reverse Lunges': {
+                alternates: [
+                    { name: 'Walking Lunges', details: 'Forward movement' },
+                    { name: 'Bulgarian Split Squat', details: 'Elevated rear leg' },
+                    { name: 'Step-ups', details: 'Box or bench' },
+                    { name: 'Lateral Lunges', details: 'Frontal plane movement' }
+                ]
+            },
+            'Kettlebell Swings': {
+                alternates: [
+                    { name: 'Dumbbell Swings', details: 'Same movement pattern' },
+                    { name: 'Broad Jumps', details: 'Similar power expression' },
+                    { name: 'Kettlebell Snatch', details: 'More technical variation' },
+                    { name: 'Box Jumps', details: 'Vertical power' }
+                ]
+            },
+            'Clean & Press': {
+                alternates: [
+                    { name: 'Dumbbell Clean & Press', details: 'Same pattern' },
+                    { name: 'Barbell Clean & Press', details: 'Heavier loads' },
+                    { name: 'Push Press', details: 'More leg drive' },
+                    { name: 'Overhead Press', details: 'Strict pressing' }
+                ]
+            },
+            'Burpees': {
+                alternates: [
+                    { name: 'Burpee Box Jump', details: 'Add plyometric' },
+                    { name: 'Devil Press', details: 'With dumbbells' },
+                    { name: 'Sprawls', details: 'No push-up' },
+                    { name: 'Jump Squats', details: 'Similar conditioning' }
+                ]
+            },
+            'Pull-ups': {
+                alternates: [
+                    { name: 'Chin-ups', details: 'Supinated grip' },
+                    { name: 'Lat Pulldown', details: 'Machine option' },
+                    { name: 'Assisted Pull-ups', details: 'Band or machine' },
+                    { name: 'Jumping Pull-ups', details: 'Use leg drive' }
+                ]
+            },
+            'Dips': {
+                alternates: [
+                    { name: 'Close-grip Push-ups', details: 'Similar tricep focus' },
+                    { name: 'Bench Dips', details: 'Easier variation' },
+                    { name: 'Overhead Tricep Extension', details: 'Isolate triceps' },
+                    { name: 'Diamond Push-ups', details: 'Bodyweight option' }
+                ]
+            },
+            'One-arm Kettlebell Swings': {
+                alternates: [
+                    { name: 'Alternating Kettlebell Swings', details: 'Switch each rep' },
+                    { name: 'Single-arm Dumbbell Snatch', details: 'Similar power' },
+                    { name: 'Medicine Ball Slams', details: 'Explosive power' },
+                    { name: 'Power Cleans', details: 'Barbell variation' }
+                ]
+            },
+            'Hanging Knee Raises': {
+                alternates: [
+                    { name: 'Hanging Leg Raises', details: 'Straight leg version' },
+                    { name: 'Lying Leg Raises', details: 'Supine variation' },
+                    { name: 'Toes to Bar', details: 'Advanced version' },
+                    { name: 'V-ups', details: 'Floor-based core' }
+                ]
+            },
+            'Side Plank': {
+                alternates: [
+                    { name: 'Copenhagen Plank', details: 'Adductor focus' },
+                    { name: 'Side Plank with Rotation', details: 'Dynamic version' },
+                    { name: 'Russian Twists', details: 'Rotational core' },
+                    { name: 'Pallof Press', details: 'Anti-rotation' }
+                ]
+            }
+        };
+
+        const workoutData = {
+            monday: {
+                name: "Kettlebell + Calisthenics Hybrid",
+                type: "intensive",
+                warmup: "10 min run on treadmill",
+                circuit: {
+                    info: "4 Rounds | 40 seconds on / 20 seconds off | 60 seconds rest between rounds",
+                    rounds: 4,
+                    exercises: [
+                        { name: "Double Kettlebell Front Squat", weight: "16 kilograms", reps: "40 seconds", sets: 4 },
+                        { name: "Push-ups", weight: "Bodyweight", reps: "40 seconds (decline/feet elevated)", sets: 4 },
+                        { name: "Single-arm Kettlebell Swings", weight: "16 kilograms", reps: "40 seconds (alternate arms)", sets: 4 },
+                        { name: "Ring Rows / Inverted Rows", weight: "Bodyweight", reps: "40 seconds", sets: 4 },
+                        { name: "Kettlebell Farmer Carry", weight: "20 kilograms each", reps: "40 seconds march", sets: 4 },
+                        { name: "Plank with Tap Outs", weight: "Bodyweight", reps: "40 seconds", sets: 4 }
+                    ]
+                },
+                cooldown: "Pigeon stretch, Couch stretch"
+            },
+            tuesday: {
+                name: "Low Intensity Steady State + Loaded Carries",
+                type: "recovery",
+                partA: { name: "Low Intensity Steady State Cardio", details: "30-40 minutes | Rower, bike, or incline walk (conversational pace)" },
+                partB: [
+                    { name: "Single-leg Romanian Deadlift", weight: "Light Kettlebell", reps: "10 per side", sets: 3 },
+                    { name: "Suitcase Carries", weight: "Heavy Kettlebell", reps: "30 meters each side", sets: 3 },
+                    { name: "Turkish Get-ups", weight: "Light Kettlebell", reps: "3 per side slow", sets: 3 },
+                    { name: "Dead Bugs", weight: "Bodyweight", reps: "12 per side", sets: 3 }
+                ]
+            },
+            wednesday: {
+                name: "Metabolic Kettlebell Complex",
+                type: "intensive",
+                warmup: "10 min run on treadmill",
+                optionA: {
+                    name: "Every Minute On the Minute for 20 minutes",
+                    exercises: [
+                        { name: "Goblet Squats", weight: "16 kilograms", reps: "8 reps", minute: 1 },
+                        { name: "Alternate Reverse Lunges", weight: "16 kilograms", reps: "10 reps", minute: 2 },
+                        { name: "Kettlebell Swings", weight: "16 kilograms", reps: "12 reps (two-hand)", minute: 3 },
+                        { name: "Rest", weight: "-", reps: "-", minute: 4 }
+                    ],
+                    note: "Repeat 5 times (20 minutes total)"
+                },
+                optionB: {
+                    name: "Kettlebell 300 - For Time",
+                    exercises: [
+                        { name: "Kettlebell Swings", weight: "16 kilograms", reps: "100 reps" },
+                        { name: "Goblet Squats", weight: "16 kilograms", reps: "75 reps" },
+                        { name: "Clean & Press", weight: "16 kilograms", reps: "50 reps (alternate)" },
+                        { name: "Burpees", weight: "Bodyweight", reps: "25 reps (step back)" }
+                    ]
+                },
+                finisher: { name: "Dead Hang", details: "3 sets × 30 seconds" }
+            },
+            thursday: {
+                name: "Rowing + Core",
+                type: "recovery",
+                exercises: [
+                    { name: "Easy Row", weight: "-", reps: "20 minutes (18-20 strokes per minute)" },
+                    { name: "90/90 Hip Stretches", weight: "-", reps: "10 minutes" },
+                    { name: "Couch Stretch", weight: "-", reps: "2 minutes each side" },
+                    { name: "Deep Squat Hold", weight: "-", reps: "2 minutes" }
+                ],
+                coreFinisher: [
+                    { name: "Hanging Knee Raises", weight: "Bodyweight", reps: "10 reps", sets: 3 },
+                    { name: "Side Plank", weight: "Bodyweight", reps: "30 seconds each side", sets: 3 }
+                ]
+            },
+            friday: {
+                name: "Push/Pull + Kettlebell Power",
+                type: "intensive",
+                warmup: "10 min run on treadmill",
+                circuit: {
+                    info: "4 Rounds | 40 seconds on / 20 seconds off | 60 seconds rest between rounds",
+                    rounds: 4,
+                    exercises: [
+                        { name: "Kettlebell Clean & Press", weight: "16 kilograms", reps: "40 seconds (alternate arms)", sets: 4 },
+                        { name: "Pull-ups", weight: "Bodyweight", reps: "40 seconds (bands/negatives)", sets: 4 },
+                        { name: "Dips", weight: "Bodyweight", reps: "40 seconds (bars or bench)", sets: 4 },
+                        { name: "One-arm Kettlebell Swings", weight: "16 kilograms", reps: "40 seconds (explosive)", sets: 4 },
+                        { name: "Push-ups on Kettlebells", weight: "Bodyweight", reps: "40 seconds", sets: 4 }
+                    ]
+                },
+                cooldown: "Lat stretch, Chest stretch"
+            },
+            saturday: {
+                name: "Endurance + Technique",
+                type: "recovery",
+                conditioning: {
+                    option1: { name: "Row", details: "5 sets × 500 meters @ 24-26 strokes per minute, 2 minutes rest" },
+                    option2: { name: "Bike", details: "4 sets × 4 minutes threshold, 2 minutes rest" }
+                },
+                technique: [
+                    { name: "Clean & Press Practice", weight: "Light Kettlebell", reps: "10 minutes practice" },
+                    { name: "Turkish Get-up Practice", weight: "Light Kettlebell", reps: "5 minutes practice" }
+                ]
+            },
+            sunday: {
+                name: "Complete Rest",
+                type: "rest",
+                note: "Full recovery day. Light stretching if needed."
+            }
+        };
+
+        const progressionData = [
+            { exercise: "Kettlebell Swings", week1_4: "12-16 kilograms", week5_8: "16-20 kilograms", current: "16" },
+            { exercise: "Goblet Squats", week1_4: "16 kilograms", week5_8: "20-24 kilograms", current: "16" },
+            { exercise: "Clean & Press", week1_4: "12-16 kilograms", week5_8: "16-20 kilograms", current: "12" },
+            { exercise: "Farmer Carry", week1_4: "20 kilograms per hand", week5_8: "24 kilograms per hand", current: "20" },
+            { exercise: "Burpees", week1_4: "Step back", week5_8: "Small jump", current: "Step back" },
+            { exercise: "Pull-ups", week1_4: "Band/negative", week5_8: "3-5 unassisted", current: "Band" }
+        ];
+
+        let currentWeek = 1;
+        let workoutState = {};
+
+        async function initApp() {
+            await loadState();
+            renderWeekSelector();
+            renderWorkoutSchedule();
+            renderProgressionTable();
+            setupTabs();
+            setupMeasurements();
+            updateStats();
+            updateQuote();
+        }
+
+        function updateQuote() {
+            // Get the current quote index from storage, or calculate a new one
+            const today = new Date().toDateString();
+            const lastQuoteDate = workoutState.lastQuoteDate || '';
+            const lastQuoteIndex = workoutState.lastQuoteIndex || 0;
+            
+            let quoteIndex;
+            
+            // If it's a new day and user completed a workout yesterday, show new quote
+            if (today !== lastQuoteDate && workoutState.lastCompletedWorkout) {
+                quoteIndex = (lastQuoteIndex + 1) % strategyQuotes.length;
+                workoutState.lastQuoteDate = today;
+                workoutState.lastQuoteIndex = quoteIndex;
+                workoutState.lastCompletedWorkout = false;
+                saveState();
+            } else {
+                quoteIndex = lastQuoteIndex;
+            }
+            
+            const quote = strategyQuotes[quoteIndex];
+            document.getElementById('quoteText').textContent = `"${quote.text}"`;
+            document.getElementById('quoteAuthor').textContent = `— ${quote.author}`;
+        }
+
+        async function loadState() {
+            try {
+                const result = await window.storage.get('workout-state', false);
+                if (result) {
+                    workoutState = JSON.parse(result.value);
+                } else {
+                    workoutState = { 
+                        completions: {}, 
+                        notes: {}, 
+                        weights: {}, 
+                        measurements: {}, 
+                        sets: {}, 
+                        alternates: {},
+                        lastQuoteDate: '',
+                        lastQuoteIndex: 0,
+                        lastCompletedWorkout: false
+                    };
+                }
+            } catch (error) {
+                workoutState = { 
+                    completions: {}, 
+                    notes: {}, 
+                    weights: {}, 
+                    measurements: {}, 
+                    sets: {}, 
+                    alternates: {},
+                    lastQuoteDate: '',
+                    lastQuoteIndex: 0,
+                    lastCompletedWorkout: false
+                };
+            }
+        }
+
+        async function saveState() {
+            try {
+                await window.storage.set('workout-state', JSON.stringify(workoutState), false);
+            } catch (error) {
+                console.error('Failed to save state:', error);
+            }
+        }
+
+        function renderWeekSelector() {
+            const selector = document.getElementById('weekSelector');
+            selector.innerHTML = '';
+            for (let i = 1; i <= 8; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'week-btn' + (i === currentWeek ? ' active' : '');
+                btn.textContent = `Week ${i}`;
+                btn.onclick = () => {
+                    currentWeek = i;
+                    renderWeekSelector();
+                    renderWorkoutSchedule();
+                    updateStats();
+                };
+                selector.appendChild(btn);
+            }
+        }
+
+        function renderWorkoutSchedule() {
+            const schedule = document.getElementById('workoutSchedule');
+            schedule.innerHTML = '';
+
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+            days.forEach((day, index) => {
+                const workout = workoutData[day];
+                const dayKey = `w${currentWeek}-${day}`;
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.className = `workout-day ${workout.type}`;
+                
+                let content = `
+                    <div class="day-header">
+                        <div class="day-title">
+                            <div class="day-name">${dayNames[index]}</div>
+                            <span class="day-type ${workout.type}">${workout.type}</span>
+                        </div>
+                        ${workout.type !== 'rest' ? `
+                        <div class="completion-checkbox">
+                            <input type="checkbox" id="complete-${dayKey}" 
+                                ${workoutState.completions?.[dayKey] ? 'checked' : ''} 
+                                onchange="toggleCompletion('${dayKey}')">
+                            <label for="complete-${dayKey}">Completed</label>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="workout-name">${workout.name}</div>
+                `;
+
+                if (workout.type === 'rest') {
+                    content += `<p style="color: var(--text-dim);">${workout.note}</p>`;
+                } else if (day === 'monday' || day === 'friday') {
+                    content += `<div class="warmup-section"><div class="section-title">Warm-up</div><p>${workout.warmup}</p></div>`;
+                    
+                    content += `<div class="circuit-info">${workout.circuit.info}</div>`;
+                    content += '<div class="exercise-list">';
+                    workout.circuit.exercises.forEach((ex, i) => {
+                        const sets = ex.sets || workout.circuit.rounds || 4;
+                        const hasAlternates = exerciseDatabase[ex.name];
+                        content += `<div class="exercise">
+                            <div class="exercise-header">
+                                <div style="flex: 1;">
+                                    <div class="exercise-name">${ex.name}</div>
+                                    <div class="exercise-details">${ex.weight} • ${ex.reps}</div>
+                                </div>
+                            </div>
+                            <div class="set-tracking">
+                                ${Array.from({length: sets}, (_, setNum) => `
+                                    <label class="set-checkbox ${workoutState.sets?.[`${dayKey}-${i}-set${setNum+1}`] ? 'completed' : ''}" 
+                                        onclick="toggleSet('${dayKey}', ${i}, ${setNum+1}, this)">
+                                        <input type="checkbox" 
+                                            ${workoutState.sets?.[`${dayKey}-${i}-set${setNum+1}`] ? 'checked' : ''}
+                                            onchange="event.stopPropagation()">
+                                        Set ${setNum + 1}
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <div class="exercise-input">
+                                <label>Weight:</label>
+                                <input type="text" placeholder="${ex.weight}" 
+                                    value="${workoutState.weights?.[`${dayKey}-${i}`] || ''}"
+                                    onchange="updateWeight('${dayKey}', ${i}, this.value)">
+                            </div>
+                            ${hasAlternates ? `<button class="alternate-btn" onclick="showAlternates('${ex.name}', '${dayKey}', ${i})">View Alternates</button>` : ''}
+                        </div>`;
+                    });
+                    content += '</div>';
+                    content += `<div class="cooldown-section"><div class="section-title">Cool-down</div><p>${workout.cooldown}</p></div>`;
+                } else if (day === 'tuesday') {
+                    content += '<div class="exercise-list">';
+                    content += `<div class="exercise">
+                        <div>
+                            <div class="exercise-name">${workout.partA.name}</div>
+                            <div class="exercise-details">${workout.partA.details}</div>
+                        </div>
+                    </div>`;
+                    content += '<div class="section-title">Part B - 3 Rounds:</div>';
+                    workout.partB.forEach((ex, i) => {
+                        const hasAlternates = exerciseDatabase[ex.name];
+                        const sets = ex.sets || 3;
+                        content += `<div class="exercise">
+                            <div class="exercise-header">
+                                <div style="flex: 1;">
+                                    <div class="exercise-name">${ex.name}</div>
+                                    <div class="exercise-details">${ex.weight} • ${ex.reps}</div>
+                                </div>
+                            </div>
+                            <div class="set-tracking">
+                                ${Array.from({length: sets}, (_, setNum) => `
+                                    <label class="set-checkbox ${workoutState.sets?.[`${dayKey}-${i}-set${setNum+1}`] ? 'completed' : ''}" 
+                                        onclick="toggleSet('${dayKey}', ${i}, ${setNum+1}, this)">
+                                        <input type="checkbox" 
+                                            ${workoutState.sets?.[`${dayKey}-${i}-set${setNum+1}`] ? 'checked' : ''}
+                                            onchange="event.stopPropagation()">
+                                        Set ${setNum + 1}
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <div class="exercise-input">
+                                <label>Weight:</label>
+                                <input type="text" placeholder="${ex.weight}" 
+                                    value="${workoutState.weights?.[`${dayKey}-${i}`] || ''}"
+                                    onchange="updateWeight('${dayKey}', ${i}, this.value)">
+                            </div>
+                            ${hasAlternates ? `<button class="alternate-btn" onclick="showAlternates('${ex.name}', '${dayKey}', ${i})">View Alternates</button>` : ''}
+                        </div>`;
+                    });
+                    content += '</div>';
+                } else if (day === 'wednesday') {
+                    content += `<div class="warmup-section"><div class="section-title">Warm-up</div><p>${workout.warmup}</p></div>`;
+                    content += '<div class="exercise-list">';
+                    content += `<div class="circuit-info">${workout.optionA.name} - ${workout.optionA.note}</div>`;
+                    workout.optionA.exercises.forEach((ex, i) => {
+                        const hasAlternates = exerciseDatabase[ex.name];
+                        if (ex.name !== 'Rest') {
+                            content += `<div class="exercise">
+                                <div class="exercise-header">
+                                    <div style="flex: 1;">
+                                        <div class="exercise-name">Minute ${ex.minute}: ${ex.name}</div>
+                                        <div class="exercise-details">${ex.weight} • ${ex.reps}</div>
+                                    </div>
+                                </div>
+                                <div class="set-tracking">
+                                    ${Array.from({length: 5}, (_, setNum) => `
+                                        <label class="set-checkbox ${workoutState.sets?.[`${dayKey}-${i}-round${setNum+1}`] ? 'completed' : ''}" 
+                                            onclick="toggleSet('${dayKey}', ${i}, 'round${setNum+1}', this)">
+                                            <input type="checkbox" 
+                                                ${workoutState.sets?.[`${dayKey}-${i}-round${setNum+1}`] ? 'checked' : ''}
+                                                onchange="event.stopPropagation()">
+                                            Round ${setNum + 1}
+                                        </label>
+                                    `).join('')}
+                                </div>
+                                ${hasAlternates ? `<button class="alternate-btn" onclick="showAlternates('${ex.name}', '${dayKey}', ${i})">View Alternates</button>` : ''}
+                            </div>`;
+                        } else {
+                            content += `<div class="exercise"><div class="exercise-name">Minute 4: Rest</div></div>`;
+                        }
+                    });
+                    content += `<div style="margin-top: 20px;"><div class="section-title">Option B - ${workout.optionB.name}:</div>`;
+                    workout.optionB.exercises.forEach(ex => {
+                        content += `<div style="padding: 8px 0; color: var(--text-dim);">• ${ex.name}: ${ex.reps}</div>`;
+                    });
+                    content += `</div><div style="margin-top: 15px;"><strong>Finisher:</strong> ${workout.finisher.name} - ${workout.finisher.details}</div>`;
+                    content += '</div>';
+                } else if (day === 'thursday') {
+                    content += '<div class="exercise-list">';
+                    workout.exercises.forEach(ex => {
+                        content += `<div class="exercise">
+                            <div>
+                                <div class="exercise-name">${ex.name}</div>
+                                <div class="exercise-details">${ex.weight} • ${ex.reps}</div>
+                            </div>
+                        </div>`;
+                    });
+                    content += '<div class="section-title">Core Finisher:</div>';
+                    workout.coreFinisher.forEach((ex, i) => {
+                        const hasAlternates = exerciseDatabase[ex.name];
+                        const sets = ex.sets || 3;
+                        content += `<div class="exercise">
+                            <div class="exercise-header">
+                                <div style="flex: 1;">
+                                    <div class="exercise-name">${ex.name}</div>
+                                    <div class="exercise-details">${ex.weight} • ${ex.reps}</div>
+                                </div>
+                            </div>
+                            <div class="set-tracking">
+                                ${Array.from({length: sets}, (_, setNum) => `
+                                    <label class="set-checkbox ${workoutState.sets?.[`${dayKey}-finisher-${i}-set${setNum+1}`] ? 'completed' : ''}" 
+                                        onclick="toggleSet('${dayKey}', 'finisher-${i}', ${setNum+1}, this)">
+                                        <input type="checkbox" 
+                                            ${workoutState.sets?.[`${dayKey}-finisher-${i}-set${setNum+1}`] ? 'checked' : ''}
+                                            onchange="event.stopPropagation()">
+                                        Set ${setNum + 1}
+                                    </label>
+                                `).join('')}
+                            </div>
+                            ${hasAlternates ? `<button class="alternate-btn" onclick="showAlternates('${ex.name}', '${dayKey}', 'finisher-${i}')">View Alternates</button>` : ''}
+                        </div>`;
+                    });
+                    content += '</div>';
+                } else if (day === 'saturday') {
+                    content += '<div class="exercise-list">';
+                    content += '<div class="section-title">Conditioning (30 minutes):</div>';
+                    content += `<div style="padding: 8px 0; color: var(--text-dim);">Option 1: ${workout.conditioning.option1.name} - ${workout.conditioning.option1.details}</div>`;
+                    content += `<div style="padding: 8px 0; color: var(--text-dim); margin-bottom: 15px;">Option 2: ${workout.conditioning.option2.name} - ${workout.conditioning.option2.details}</div>`;
+                    content += '<div class="section-title">Kettlebell Technique (15 minutes):</div>';
+                    workout.technique.forEach((ex, i) => {
+                        const hasAlternates = exerciseDatabase[ex.name];
+                        content += `<div class="exercise">
+                            <div>
+                                <div class="exercise-name">${ex.name}</div>
+                                <div class="exercise-details">${ex.weight} • ${ex.reps}</div>
+                            </div>
+                            ${hasAlternates ? `<button class="alternate-btn" onclick="showAlternates('${ex.name}', '${dayKey}', ${i})">View Alternates</button>` : ''}
+                        </div>`;
+                    });
+                    content += '</div>';
+                }
+
+                if (workout.type !== 'rest') {
+                    content += `<div class="notes-section">
+                        <label>Workout Notes:</label>
+                        <textarea id="notes-${dayKey}" placeholder="How did you feel? Any modifications? Notes...">${workoutState.notes?.[dayKey] || ''}</textarea>
+                        <button class="save-btn" onclick="saveNotes('${dayKey}')">Save Notes</button>
+                    </div>`;
+                }
+
+                dayDiv.innerHTML = content;
+                schedule.appendChild(dayDiv);
+            });
+        }
+
+        function renderProgressionTable() {
+            const tbody = document.querySelector('#progressionTable tbody');
+            tbody.innerHTML = '';
+            
+            progressionData.forEach((item, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><strong>${item.exercise}</strong></td>
+                    <td>${item.week1_4}</td>
+                    <td>${item.week5_8}</td>
+                    <td>
+                        <input type="text" class="weight-input" id="prog-${index}" 
+                            value="${workoutState.weights?.[`prog-${index}`] || item.current}"
+                            onchange="saveProgression(${index}, this.value)">
+                    </td>
+                `;
+            });
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+        }
+
+        function setupMeasurements() {
+            if (workoutState.measurements) {
+                document.getElementById('startWeight').value = workoutState.measurements.startWeight || 105;
+                document.getElementById('currentWeight').value = workoutState.measurements.currentWeight || 105;
+                document.getElementById('goalWeight').value = workoutState.measurements.goalWeight || 90;
+                document.getElementById('waist').value = workoutState.measurements.waist || '';
+                document.getElementById('chest').value = workoutState.measurements.chest || '';
+                document.getElementById('arms').value = workoutState.measurements.arms || '';
+                document.getElementById('thighs').value = workoutState.measurements.thighs || '';
+                updateWeightProgress();
+            }
+        }
+
+        async function toggleSet(dayKey, exerciseIndex, setId, element) {
+            if (!workoutState.sets) workoutState.sets = {};
+            const key = `${dayKey}-${exerciseIndex}-${setId}`;
+            workoutState.sets[key] = !workoutState.sets[key];
+            
+            if (workoutState.sets[key]) {
+                element.classList.add('completed');
+            } else {
+                element.classList.remove('completed');
+            }
+            
+            await saveState();
+        }
+
+        async function updateWeight(dayKey, exerciseIndex, value) {
+            if (!workoutState.weights) workoutState.weights = {};
+            workoutState.weights[`${dayKey}-${exerciseIndex}`] = value;
+            await saveState();
+        }
+
+        function showAlternates(exerciseName, dayKey, exerciseIndex) {
+            const alternates = exerciseDatabase[exerciseName];
+            if (!alternates) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+
+            const content = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Alternates for ${exerciseName}</h3>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">×</button>
+                    </div>
+                    <div class="alternate-list">
+                        ${alternates.alternates.map(alt => `
+                            <div class="alternate-item" onclick="selectAlternate('${dayKey}', ${exerciseIndex}, '${alt.name}'); this.closest('.modal').remove();">
+                                <div class="alternate-item-name">${alt.name}</div>
+                                <div class="alternate-item-details">${alt.details}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            modal.innerHTML = content;
+            document.body.appendChild(modal);
+        }
+
+        async function selectAlternate(dayKey, exerciseIndex, alternateName) {
+            if (!workoutState.alternates) workoutState.alternates = {};
+            workoutState.alternates[`${dayKey}-${exerciseIndex}`] = alternateName;
+            await saveState();
+            renderWorkoutSchedule();
+        }
+
+        async function toggleCompletion(dayKey) {
+            if (!workoutState.completions) workoutState.completions = {};
+            const isCompleted = document.getElementById(`complete-${dayKey}`).checked;
+            workoutState.completions[dayKey] = isCompleted;
+            
+            // Mark that a workout was completed (for quote rotation)
+            if (isCompleted) {
+                workoutState.lastCompletedWorkout = true;
+            }
+            
+            await saveState();
+            updateStats();
+        }
+
+        async function saveNotes(dayKey) {
+            if (!workoutState.notes) workoutState.notes = {};
+            workoutState.notes[dayKey] = document.getElementById(`notes-${dayKey}`).value;
+            
+            await saveState();
+            
+            // Show feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Saved!';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = 'var(--primary)';
+            }, 2000);
+        }
+
+        async function saveProgression(index, value) {
+            if (!workoutState.weights) workoutState.weights = {};
+            workoutState.weights[`prog-${index}`] = value;
+            await saveState();
+        }
+
+        async function saveMeasurements() {
+            if (!workoutState.measurements) workoutState.measurements = {};
+            workoutState.measurements.startWeight = parseFloat(document.getElementById('startWeight').value);
+            workoutState.measurements.currentWeight = parseFloat(document.getElementById('currentWeight').value);
+            workoutState.measurements.goalWeight = parseFloat(document.getElementById('goalWeight').value);
+            workoutState.measurements.waist = document.getElementById('waist').value;
+            workoutState.measurements.chest = document.getElementById('chest').value;
+            workoutState.measurements.arms = document.getElementById('arms').value;
+            workoutState.measurements.thighs = document.getElementById('thighs').value;
+            
+            await saveState();
+            updateWeightProgress();
+            updateStats();
+            
+            // Show feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Saved!';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = 'var(--primary)';
+            }, 2000);
+        }
+
+        function updateWeightProgress() {
+            const start = parseFloat(document.getElementById('startWeight').value) || 105;
+            const current = parseFloat(document.getElementById('currentWeight').value) || 105;
+            const goal = parseFloat(document.getElementById('goalWeight').value) || 90;
+            
+            const lost = start - current;
+            const total = start - goal;
+            const progress = (lost / total) * 100;
+            
+            document.getElementById('weightLost').textContent = lost.toFixed(1);
+            document.getElementById('weightProgress').style.width = Math.min(progress, 100) + '%';
+        }
+
+        function updateStats() {
+            document.getElementById('currentWeekStat').textContent = currentWeek;
+            
+            let completed = 0;
+            if (workoutState.completions) {
+                completed = Object.values(workoutState.completions).filter(v => v).length;
+            }
+            document.getElementById('completedStat').textContent = `${completed}/48`;
+            
+            const current = workoutState.measurements?.currentWeight || 105;
+            document.getElementById('weightStat').textContent = `${current} kg`;
+            
+            const start = workoutState.measurements?.startWeight || 105;
+            const goal = workoutState.measurements?.goalWeight || 90;
+            const progress = ((start - current) / (start - goal)) * 100;
+            document.getElementById('progressStat').textContent = `${Math.max(0, Math.min(progress, 100)).toFixed(0)}%`;
+        }
+
+        initApp();
+    </script>
+
+    <!-- Service Worker Registration for Offline Support -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
